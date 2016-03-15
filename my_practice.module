@@ -1,0 +1,81 @@
+<?php
+/**
+ * Implements hook_menu
+ */
+function my_practice_menu() {
+  $items = array();
+  $items['my_practice/node_batch'] = array(
+    'title' => 'Node Batch',
+    'description' => 'Creating Nodes In A Batch Process.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('my_practice_batch_form'),
+    'access arguments' => array('administer users'),
+    //'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_form
+ */
+function my_practice_batch_form($form, &$form_state) {
+  $form = array();
+  $form['number_of_nodes'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Enter Number of nodes to create',
+    '#required' => TRUE,
+    '#element_validate' => array('element_validate_integer_positive'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_form_submit
+ * @param type $form
+ * @param type $form_state
+ */
+function my_practice_batch_form_submit($form, &$form_state) {
+  // get the submitted value
+  $number_of_nodes = $form_state['values']['number_of_nodes'];
+  // Create operations array.
+  $operations = array();
+  for ($i = 1; $i <= $number_of_nodes; $i++) {
+    // This function will contain code for node creation.
+    $operations[] = array('my_practice_create_nodes',array($i));
+  }
+  
+  // Start Batch of node creation.
+  $batch = array(
+    'title' => t('Creating Nodes Finally.'),
+    'operations' => $operations,
+    'finished' => 'my_practice_batch_finished',
+    'init_message' => t('Node Creation Is Starting.'),
+    'progress_message' => t('Processed @current out of @total.'),
+    'error_message' => t('Node creation has encountered an error.'),    
+  );
+
+  // Set the batch operation.
+  batch_set($batch);
+}
+
+/**
+ * Helper function to create nodes in batch process.
+ * @param type $number_of_nodes
+ */
+function my_practice_create_nodes($number_of_nodes) {
+  /*
+   *  Your Programatically Node Creation Code Here.
+   */
+}
+
+/**
+ * Callback : Called when batch process is finished.
+ */
+function my_practice_batch_finished() {
+  drupal_set_message('Nodes Created Successfully.');
+  drupal_goto('my_practice/node_batch');
+}
